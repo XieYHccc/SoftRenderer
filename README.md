@@ -22,7 +22,7 @@ Currently only support Platform Windows
 - Moveable camera
 
 ## TODO
-- [] Physically based rendering (PBR)
-- [] Metallic-roughness workflow
-- [] Image-based lighting (IBL)
-- [] Cubemapped skybox
+- [ ] Physically based rendering (PBR)
+- [ ] Metallic-roughness workflow
+- [ ] Image-based lighting (IBL)
+- [ ] Cubemapped skybox
