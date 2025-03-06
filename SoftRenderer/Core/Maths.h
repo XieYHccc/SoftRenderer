@@ -7,7 +7,9 @@
 
 #define PI 3.14159265358979323846f
 
-
+///////////////////// constant operations //////////////////////////////////
+float to_radians(float degrees);
+float to_degrees(float radians);
 
 ///////////////////////////////////////////////////////////////////////////
 template<size_t DimCols, size_t DimRows, typename T> class Matrix;
@@ -30,8 +32,6 @@ template <typename T> struct Vector<2, T> {
     T x, y;
 };
 
-/////////////////////////////////////////////////////////////////////////////////
-
 template <typename T> struct Vector<3, T> {
     Vector() : x(T()), y(T()), z(T()) {}
     Vector(T X, T Y, T Z) : x(X), y(Y), z(Z) {}
@@ -43,9 +43,20 @@ template <typename T> struct Vector<3, T> {
 
     T x, y, z;
 };
+template <typename T> struct Vector<4, T> {
+    Vector() : data_{ T(), T(), T(), T() } {}
+    Vector(T X, T Y, T Z, T W) : data_{ X, Y, Z, W } {}
+    template <class U> Vector<4, T>(const Vector<4, U>& v) : data_{ v[0], v[1], v[2], v[3] } {}
 
-/////////////////////////////////////////////////////////////////////////////////
+    T& operator[](const size_t i) { assert(i < 4); return data_[i]; }
+    const T& operator[](const size_t i) const { assert(i < 4); return data_[i]; }
+    float norm() { return std::sqrt(data_[0] * data_[0] + data_[1] * data_[1] + data_[2] * data_[2] + data_[3] * data_[3]); }
+    Vector<4, T>& normalize(T l = 1) { *this = (*this) * (l / norm()); return *this; }
+    T data_[4];
+};
 
+
+////////////////////////////////// vector operations ////////////////////////////////
 template<size_t DIM, typename T> T operator*(const Vector<DIM, T>& lhs, const Vector<DIM, T>& rhs) {
     T ret = T();
     for (size_t i = DIM; i--; ret += lhs[i] * rhs[i]);
@@ -187,7 +198,7 @@ public:
     }
 };
 
-/////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// matrix operations ////////////////////////////////
 
 template<size_t DimRows, size_t DimCols, typename T> Vector<DimRows, T> operator*(const Matrix<DimRows, DimCols, T>& lhs, const Vector<DimCols, T>& rhs) {
     Vector<DimRows, T> ret;
@@ -212,13 +223,18 @@ template <size_t DimRows, size_t DimCols, class T> std::ostream& operator<<(std:
     return out;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-typedef Vector<2, float> Vec2f;
-typedef Vector<2, int>   Vec2i;
-typedef Vector<3, float> Vec3f;
-typedef Vector<3, int>   Vec3i;
-typedef Vector<4, float> Vec4f;
-typedef Matrix<4, 4, float> mat4;
+// aliases
+using Vec2f = Vector<2, float>;
+using Vec2i = Vector<2, int>;
+using Vec3f = Vector<3, float>;
+using Vec3i = Vector<3, int>;
+using Vec4f = Vector<4, float>;
+using mat4 = Matrix<4, 4, float>;
 
+// graphics specific
+mat4 viewport(int x, int y, int w, int h);
+mat4 perspective(float eye_fov, float aspect_ratio, float zNear, float zFar);
+mat4 lookat(Vec3f eye, Vec3f center, Vec3f up);
+mat4 ortho(float left, float right, float bottom, float top, float zNear, float zFar);
 
 #endif //__SOFTRENDERER_MATHS_H__

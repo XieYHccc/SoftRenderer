@@ -234,9 +234,9 @@ void window_draw(unsigned char *framebuffer)
 		for (int j = 0; j < window->width; j++)
 		{
 			int index = (i * window->width + j) * 4;
-			window->window_fb[index]	 = framebuffer[index];
+			window->window_fb[index]	 = framebuffer[index + 2];
 			window->window_fb[index + 1] = framebuffer[index + 1];
-			window->window_fb[index + 2] = framebuffer[index + 2];
+			window->window_fb[index + 2] = framebuffer[index];
 		}
 	}
 	window_display();
@@ -246,7 +246,7 @@ Vec2f get_mouse_pos()
 {
 	POINT point;
 	GetCursorPos(&point);
-	ScreenToClient(window->h_window, &point); // 从屏幕空间转到窗口空间
+	ScreenToClient(window->h_window, &point); // ndc space -> screen space 
 	return Vec2f((float)point.x, (float)point.y);
 }
 

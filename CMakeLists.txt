@@ -13,8 +13,8 @@ set(SOFTRENDERER_HEADERS
     ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/TGAImage.h
     ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/Model.h
     ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/Graphics.h
-    ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/Platform.h
-    ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/Image.h
+    ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/Texture.h
+    ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/Camera.h
     "${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Platform/Win32.h"
     
 )
@@ -25,9 +25,9 @@ set(SOFTRENDERER_SOURCES
     ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/TGAImage.cpp
     ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/Model.cpp
     ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/Graphics.cpp
+    ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/Texture.cpp
+    ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/Camera.cpp
     "${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Platform/Win32.cpp"
-    ${SOFTRENDERER_ROOT_DIR}/SoftRenderer/Core/Image.cpp
-
 
 )
 

@@ -20,8 +20,6 @@ struct TGA_Header {
 };
 #pragma pack(pop)
 
-
-
 struct TGAColor {
     unsigned char bytespp;
 

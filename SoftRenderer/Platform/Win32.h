@@ -22,11 +22,11 @@ typedef struct window
 	HDC mem_dc;
 	HBITMAP bm_old;
 	HBITMAP bm_dib;
-	unsigned char *window_fb;
+	unsigned char* window_fb;
 	int width;
 	int height;
 	char keys[512];
-	char buttons[2];	//left button¡ª0£¬ right button¡ª1
+	char buttons[2];	//left button and right button
 	int is_close;
 	mouse_t mouse_info;
 }window_t;

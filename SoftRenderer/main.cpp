@@ -1,19 +1,24 @@
 #include "./Core/TGAImage.h"
 #include "./Core/Model.h"
 #include "./Core/Graphics.h"
+#include "./Core/Texture.h"
+#include "./Core/Camera.h"
+
 #include "./Platform/Win32.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 800;
 Model* model = nullptr;
+unsigned char* framebuffer = nullptr;
 
 Vec3f light_position = Vec3f(1, 1, 1);
 Vec3f light_dir = Vec3f(1, 1, 1).normalize();
 Vec3f       eye(0.f, 0.f, 3.f);
 Vec3f    center(0, 0, 0);
 Vec3f        up(0, 1, 0);
-
+Camera camera(eye, center, WIDTH / HEIGHT);
 mat4 Viewport;
+
 struct Shader : public IShader {
     Matrix<2, 3, float> varying_vUv;              // same as above
     Matrix<3, 3, float> varying_vPos;
@@ -24,7 +29,7 @@ struct Shader : public IShader {
     Matrix<4, 4, float> uniform_model;
     Matrix<4, 4, float> uniform_model_invtran;     // (Projection*ModelView).invert_transpose()
 
-    TGAImage* inputAttachment_shadowMap;
+    Texture* inputAttachment_shadowMap;
 
     float shadowCalculation(Vec4f fragPosLightSpace, Vec3f normal, Vec3f lightDir)
     {
@@ -35,10 +40,10 @@ struct Shader : public IShader {
         float current_depth = projCoords.z;
         int x = projCoords.x * inputAttachment_shadowMap->get_width();
         int y = projCoords.y * inputAttachment_shadowMap->get_height();
-        TGAColor sampled_depth = inputAttachment_shadowMap->get(x, y);
+        float sampled_depth = inputAttachment_shadowMap->get_pixel(x, y)[0];
 
         float bias = std::max(0.1f * (1.0 - (normal * lightDir)), 0.005);
-        float shadow = current_depth - 0.05 > sampled_depth.val ? 0.8f : 0.0;
+        float shadow = current_depth - 0.05 > sampled_depth ? 0.8f : 0.0;
 
         return shadow;
     }
@@ -126,77 +131,81 @@ int main(int argc, char** argv) {
     else {
         model = new Model("../Assets/african_head/african_head.obj");
     }
+
     // initialize window
     window_init(WIDTH, HEIGHT, "SoftRenderer");
 
-    light_dir.normalize();
-
     // lighting pass framebuffer
-    TGAImage frame(WIDTH, HEIGHT, TGAImage::RGBA);
-    TGAImage zbuffer(WIDTH, HEIGHT, TGAImage::RGBA);
+    framebuffer = new unsigned char[WIDTH * HEIGHT * 4];
+    Texture color_buffer(WIDTH, HEIGHT, TexutreFormat::RGBA8);
+    Texture depth_buffer(WIDTH, HEIGHT, TexutreFormat::RGBA32);
 
     // depth pass framebuffer
-    TGAImage shadow_buffer(WIDTH, HEIGHT, TGAImage::RGB);
-    TGAImage shadow_zbuffer(WIDTH, HEIGHT, TGAImage::RGBA); // TODO: remove this redundent buffer
-    for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
-            zbuffer.set(i, j, TGAColor(1.f));
-            shadow_zbuffer.set(i, j, TGAColor(1.f));
-            shadow_buffer.set(i, j, TGAColor(255, 255, 255));
-        }
-    }
+    Texture shadow_buffer(WIDTH, HEIGHT, TexutreFormat::RGBA8);  // TODO: remove this redundent buffer
+    Texture shadow_zbuffer(WIDTH, HEIGHT, TexutreFormat::RGBA32); 
 
     mat4 lightSpaceMatrix = ortho(-2, 2, -2, 2, 0.1, 5.f) * lookat(light_position, center, up);
+
     {   // rendering the shadow buffer
         Viewport = viewport(0, 0, WIDTH, HEIGHT);
+        shadow_buffer.clear(Vec4f(0.1f, 0.1f, 0.1f, 0.1f));
+        shadow_zbuffer.clear(Vec4f(1.f, 0.f, 0.f, 0.f));
 
         DepthShader depthshader;
         depthshader.uniform_lightSpaceMatrix = lightSpaceMatrix;
         depthshader.uniform_model = mat4::identity();
         Vec4f screen_coords[3];
-        for (int i = 0; i < model->nfaces(); i++) {
-            for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < model->nfaces(); i++) 
+        {
+            for (int j = 0; j < 3; j++) 
                 screen_coords[j] = depthshader.vertex(i, j);
-            }
             triangle(screen_coords, depthshader, shadow_buffer, shadow_zbuffer);
         }
-        shadow_buffer.flip_vertically(); // to place the origin in the bottom left corner of the image
-        shadow_buffer.write_tga_file("depth.tga");
-        //shadow_zbuffer.flip_vertically(); !!!!!! this is wrong, zbuffer should not be flipped
     }
 
-    {
-        // lighting pass
-        mat4 ModelView = lookat(eye, center, up);
-        mat4 Projection = perspective(45, WIDTH / HEIGHT, 0.1f, 100.f);
-        Viewport = viewport(0, 0, WIDTH, HEIGHT);
-
-        Shader shader;
-        shader.uniform_mvp = Projection * ModelView;
-        shader.uniform_model = mat4::identity();
-        shader.uniform_model_invtran = shader.uniform_model.invert_transpose();
-        shader.uniform_lightMatrix = lightSpaceMatrix;
-        shader.inputAttachment_shadowMap = &shadow_zbuffer;
-
-        for (int i = 0; i < model->nfaces(); i++) {
-            Vec4f screen_coords[3];
-            for (int j = 0; j < 3; j++) {
-                screen_coords[j] = shader.vertex(i, j);
-            }
-            triangle(screen_coords, shader, frame, zbuffer);
-        }
-        frame.flip_vertically(); // to place the origin in the bottom left corner of the image
-        frame.write_tga_file("framebuffer.tga");
-    }
-
+    float start_time = 0.f;
+    float end_time = 0.f;
     while (!window->is_close)
     {
-        window_draw(frame.buffer());
+        start_time = platform_get_time();
+        {
+            // update camera
+            camera.orbit(Vec2f(0.f, 0.01f));
+            // lighting pass
+            depth_buffer.clear(Vec4f(1.f, 0.f, 0.f, 0.f));
+            color_buffer.clear(Vec4f(0.f, 0.f, 0.f, 1.f));
+            mat4 model_view = camera.get_view_matrix();
+            mat4 proj = camera.get_proj_matrix();
+
+            Viewport = viewport(0, 0, WIDTH, HEIGHT);
+
+            Shader shader;
+            shader.uniform_mvp = proj * model_view;
+            shader.uniform_model = mat4::identity();
+            shader.uniform_model_invtran = shader.uniform_model.invert_transpose();
+            shader.uniform_lightMatrix = lightSpaceMatrix;
+            shader.inputAttachment_shadowMap = &shadow_zbuffer;
+
+            for (int i = 0; i < model->nfaces(); i++) {
+                Vec4f screen_coords[3];
+                for (int j = 0; j < 3; j++)
+                    screen_coords[j] = shader.vertex(i, j);
+                triangle(screen_coords, shader, color_buffer, depth_buffer);
+            }
+
+        }
+
+        color_buffer.to_unsigned_char(framebuffer);
+        window_draw(framebuffer);
         msg_dispatch();
+
+        end_time = platform_get_time();
+        std::cout << "fps " << 1.f / (end_time - start_time) << std::endl;
     }
 
+    delete[] framebuffer;
     delete model;
-    window_destroy();
 
+    window_destroy();
     return 0;
 }
