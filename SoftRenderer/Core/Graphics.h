@@ -5,9 +5,6 @@
 #include "TGAImage.h"
 #include "Texture.h"
 
-float fragDepth2LinearDepth(float frag_z, float zNear, float zFar);
-Vec3f reflect(Vec3f outward_normal, Vec3f outward_light);
-
 struct IShader {
     virtual ~IShader() = default;
     virtual Vec4f vertex(int iface, int nthvert) = 0;
@@ -15,5 +12,7 @@ struct IShader {
 };
 
 void triangle(Vec4f* pts, IShader& shader, Texture& color_buffer, Texture& zbuffer);
+float fdepth_to_ldepth(float frag_z, float zNear, float zFar); // TODO: not belong here, remove it
+Vec3f reflect(Vec3f outward_normal, Vec3f outward_light);
 
 #endif

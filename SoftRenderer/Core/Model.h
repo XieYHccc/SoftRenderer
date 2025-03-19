@@ -1,9 +1,10 @@
 #ifndef __MODEL_H__
 #define __MODEL_H__
-#include <vector>
-#include <string>
 #include "Maths.h"
 #include "TGAImage.h"
+
+#include <vector>
+#include <string>
 
 class Model {
 public:

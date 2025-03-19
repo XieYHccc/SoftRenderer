@@ -55,7 +55,7 @@ Vec4f Texture::sample(Vec2f uvf)
 	return m_data[x + y * m_width];
 }
 
-void Texture::to_unsigned_char(unsigned char* out_buffer)
+void Texture::to_uchar(unsigned char* out_buffer)
 {
 	for (int i = 0; i < m_width; i++) {
 		for (int j = 0; j < m_height; j++) {

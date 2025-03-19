@@ -37,7 +37,7 @@ public:
 	void linear_to_srgb();
 	void srgb_to_linear();
 
-	void to_unsigned_char(unsigned char* out_buffer);
+	void to_uchar(unsigned char* out_buffer);
 
 private:
 	std::vector<Vec4f> m_data;

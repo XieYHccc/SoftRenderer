@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
         start_time = platform_get_time();
         {
             // update camera
-            camera.orbit(Vec2f(0.f, 0.01f));
+            camera.orbit(Vec2f(0.01f, 0.f));
             // lighting pass
             depth_buffer.clear(Vec4f(1.f, 0.f, 0.f, 0.f));
             color_buffer.clear(Vec4f(0.f, 0.f, 0.f, 1.f));
@@ -195,7 +195,7 @@ int main(int argc, char** argv) {
 
         }
 
-        color_buffer.to_unsigned_char(framebuffer);
+        color_buffer.to_uchar(framebuffer);
         window_draw(framebuffer);
         msg_dispatch();
 

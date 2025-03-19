@@ -1,6 +1,6 @@
 #include "Graphics.h"
 
-float fragDepth2LinearDepth(float frag_z, float zNear, float zFar) {
+float fdepth_to_ldepth(float frag_z, float zNear, float zFar) {
     float n = zNear;
     float f = zFar;
     float z_ndc = 2 * (frag_z - 0.5f); // convert to [-1, 1] from [0, 1]
@@ -47,6 +47,7 @@ void triangle(Vec4f* pts, IShader& shader, Texture& color_buffer, Texture& zbuff
     for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) {
         for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) {
             Vec3f c = barycentric(proj<2>(pts[0] / pts[0][3]), proj<2>(pts[1] / pts[1][3]), proj<2>(pts[2] / pts[2][3]), proj<2>(P));
+            // perspective correction
             Vec3f c_corrected = Vec3f(c.x / pts[0][3], c.y / pts[1][3], c.z / pts[2][3]);
             c_corrected = c_corrected / (c_corrected.x + c_corrected.y + c_corrected.z);
             float z = pts[0][2] * c_corrected.x + pts[1][2] * c_corrected.y + pts[2][2] * c_corrected.z;

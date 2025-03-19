@@ -8,7 +8,14 @@ Currently only support Platform Windows
 
 <img src="image/african_head.png" width="410" >
 
+## shadow mapping
 <img src="image/dioblo3_shadowmap.png" width="410">
+
+## Ao Texture baking
+<img src="image/ao.png" width="410">
+
+## SSAO
+<img src="image/ssao.png" width="410">
 
 ## Main Features
 - Minimal dependencies
